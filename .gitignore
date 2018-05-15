@@ -1,0 +1,8 @@
+.DS_Store
+*.dSYM
+*.sw?
+*.o
+# ctags file
+tags
+# this is the build product
+/loginwindowbgconverter
