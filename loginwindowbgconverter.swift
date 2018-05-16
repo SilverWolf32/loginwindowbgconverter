@@ -4,7 +4,10 @@ import Foundation
 import AppKit
 
 func printUsage() {
-	print("usage: \(CommandLine.arguments[0]) \u{1B}[4mimage-file\u{1B}[0m")
+	print("""
+	usage: \(CommandLine.arguments[0]) \u{1B}[4mimage-file\u{1B}[0m
+	It needs to be run as root, as it saves to /Library/Caches.
+	""")
 }
 
 guard CommandLine.arguments.indices.contains(1) else {
@@ -16,7 +19,7 @@ let inputFile = CommandLine.arguments[1]
 // print("Filename: \(inputFile)")
 
 guard let inputImage = NSImage(contentsOfFile: inputFile) else {
-	print("\(CommandLine.arguments[0]): cannot load image from \(inputFile)")
+	print("\(CommandLine.arguments[0]): can't load image from \(inputFile)")
 	exit(2)
 }
 
