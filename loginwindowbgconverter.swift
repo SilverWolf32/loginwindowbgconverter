@@ -6,7 +6,7 @@ import AppKit
 func printUsage() {
 	print("""
 	usage: \(CommandLine.arguments[0]) \u{1B}[4mimage-file\u{1B}[0m
-	It needs to be run as root, as it saves to /Library/Caches.
+	It needs to be run as root, as it saves to /Library/Desktop Pictures.
 	""")
 }
 
@@ -126,12 +126,40 @@ guard let cgImage = newImage.cgImage(forProposedRect: &proposedRect, context: ni
 }
 print("proposed rect is now \(proposedRect)") */
 // let bitmapImageRep = NSBitmapImageRep(cgImage: cgImage)
-let pngData = newImage.representation(using: .png, properties: [:])!
-do {
-	// try pngData.write(to: URL(fileURLWithPath: "\(NSHomeDirectory())/Desktop/com.apple.desktop.admin.png"))
-	try pngData.write(to: URL(fileURLWithPath: "/Library/Caches/com.apple.desktop.admin.png"))
-} catch {
-	print("\(CommandLine.arguments[0]): can't write image data: \(error)")
-	print("(do you have write permission?)")
-	exit(1)
+
+if #available(macOS 10.14, *) { // macOS Mojave has a completely different system
+	let targetFile = "/Library/Desktop Pictures/Mojave.heic"
+	let origFile =  "/Library/Desktop Pictures/Mojave.heic.orig"
+	if !FileManager.default.fileExists(atPath: origFile) { // no backup of original Mojave.heic
+		print("Backing up original Mojave.heic (this should only happen once)")
+		do {
+			try FileManager.default.copyItem(atPath: targetFile, toPath: origFile)
+		} catch {
+			print("\(CommandLine.arguments[0]): \u{1B}[1mbackup failed, aborting!\u{1B}[0m \(error.localizedDescription)")
+			exit(1)
+		}
+	}
+	
+	print("Saving to \(targetFile)")
+	// actual writing
+	let imageData = newImage.representation(using: .jpeg, properties: [:])!
+	do {
+		try imageData.write(to: URL(fileURLWithPath: targetFile))
+	} catch {
+		print("\(CommandLine.arguments[0]): can't write image data: \(error)")
+		print("(are yuou root?)")
+		exit(1)
+	}
+} else {
+	let targetFile = "/Library/Caches/com.apple.desktop.admin.png"
+	print("Saving to \(targetFile)")
+	let pngData = newImage.representation(using: .png, properties: [:])!
+	do {
+		// try pngData.write(to: URL(fileURLWithPath: "\(NSHomeDirectory())/Desktop/com.apple.desktop.admin.png"))
+		try pngData.write(to: URL(fileURLWithPath: targetFile))
+	} catch {
+		print("\(CommandLine.arguments[0]): can't write image data: \(error)")
+		print("(do you have write permission?)")
+		exit(1)
+	}
 }
