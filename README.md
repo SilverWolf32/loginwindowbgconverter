@@ -4,7 +4,7 @@ This is a simple Swift program to set the login screen background on macOS, both
 
 ### An Important Note
 
-On Mojave, the login window background will be significantly dimmer than the original picture. It seems to be simply crushing whites down to 180 or so (of 255). The default dune picture doesn't seem to have this problem, possibly because it's an actual HEIC file instead of a JPEG.
+On Mojave, the login window background will be significantly dimmer than the original picture. It seems to be simply crushing whites down to 180 or so (out of 255).
 
 ### Compilation
 
@@ -25,7 +25,7 @@ sudo EDITOR=nano visudo
 ```
 <sub>(leave out EDITOR=nano if you already have an editor configured or like the default)</sub>
 
-Then add this line to the `# User privilege specification` block, replacing <user\> with your username (name of your home folder):
+Then add this line to the `# User privilege specification` block, replacing <user\> with your username:
 
 ```
 <user>	ALL=(ALL) ALL
