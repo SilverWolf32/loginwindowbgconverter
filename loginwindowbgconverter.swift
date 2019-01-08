@@ -10,19 +10,32 @@ import Foundation
 // import AppKit.NSImage
 // import AppKit.NSScreen
 import AppKit
+import CoreImage
 
 func printUsage() {
 	print("""
-	usage: \(CommandLine.arguments[0]) \u{1B}[4mimage-file\u{1B}[0m
+	usage: \(CommandLine.arguments[0]) [--heif] \u{1B}[4mimage-file\u{1B}[0m
 	It needs to be run as root, as it saves to /Library/Desktop Pictures.
 	""")
 }
+
+var inputFile = ""
+var useHEIF = false
 
 guard CommandLine.arguments.indices.contains(1) else {
 	printUsage()
 	exit(1)
 }
-let inputFile = CommandLine.arguments[1]
+if CommandLine.arguments[1] == "--heif" {
+	useHEIF = true
+	guard CommandLine.arguments.indices.contains(2) else {
+		printUsage()
+		exit(1)
+	}
+	inputFile = CommandLine.arguments[2]
+} else {
+	inputFile = CommandLine.arguments[1]
+}
 
 // print("Filename: \(inputFile)")
 
@@ -150,9 +163,25 @@ if #available(macOS 10.14, *) { // macOS Mojave has a completely different syste
 	
 	print("Saving to \(targetFile)")
 	// actual writing
-	let imageData = newImage.representation(using: .jpeg, properties: [:])!
+	var imageData: Data? = nil
+	if useHEIF {
+		guard let ciimage = CIImage(bitmapImageRep: newImage) else {
+			print("\(CommandLine.arguments[0]): can't create CIImage from bitmap!")
+			exit(2)
+		}
+		let context = CIContext()
+		// let colorSpaceName = CGColorSpace.sRGB
+		let colorSpaceName = CGColorSpace.displayP3
+		guard let colorSpace = CGColorSpace(name: colorSpaceName) else {
+			print("\(CommandLine.arguments[0]): can't get color space!")
+			exit(2)
+		}
+		imageData = context.heifRepresentation(of: ciimage, format: .RGBA8, colorSpace: colorSpace)
+	} else {
+		imageData = newImage.representation(using: .jpeg, properties: [:])!
+	}
 	do {
-		try imageData.write(to: URL(fileURLWithPath: targetFile))
+		try imageData?.write(to: URL(fileURLWithPath: targetFile))
 	} catch {
 		print("\(CommandLine.arguments[0]): can't write image data: \(error)")
 		print("(are you root?)")
